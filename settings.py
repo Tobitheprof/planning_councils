@@ -12,6 +12,11 @@ BOT_NAME = "planning_councils"
 SPIDER_MODULES = ["planning_councils.spiders"]
 NEWSPIDER_MODULE = "planning_councils.spiders"
 
+SCRAPEOPS_API_KEY = 'YOUR_API_KEY_HERE' # signup at https://scrapeops.io
+SCRAPEOPS_FAKE_USER_AGENT_ENDPOINT = 'https://headers.scrapeops.io/v1/user-agents'
+SCRAPEOPS_FAKE_USER_AGENT_ENABLED = True
+SCRAPEOPS_NUM_RESULTS = 5
+
 
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
 #USER_AGENT = "planning_councils (+http://www.yourdomain.com)"
@@ -44,9 +49,9 @@ ROBOTSTXT_OBEY = False
 
 # Enable or disable spider middlewares
 # See https://docs.scrapy.org/en/latest/topics/spider-middleware.html
-#SPIDER_MIDDLEWARES = {
-#    "planning_councils.middlewares.PlanningCouncilsSpiderMiddleware": 543,
-#}
+DOWNLOADER_MIDDLEWARES = {
+    'planning_councils.middlewares.ScrapeOpsFakeBrowserHeaderAgentMiddleware': 400,
+}
 
 # Enable or disable downloader middlewares
 # See https://docs.scrapy.org/en/latest/topics/downloader-middleware.html
