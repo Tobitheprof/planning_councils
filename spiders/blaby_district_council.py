@@ -3,23 +3,26 @@ from urllib.parse import urljoin
 from planning_councils.items import AdurApplicationItem
 
 class PlanningSpider(scrapy.Spider):
-    name = "blaby_district_council"
+    name = "blaby"
     allowed_domains = ["pa.blaby.gov.uk"]
+    handle_httpstatus_list = [301, 302]  # Handle redirection explicitly
 
     def start_requests(self):
         url = "https://pa.blaby.gov.uk/online-applications/search.do?action=weeklyList"
-        yield scrapy.Request(url=url, callback=self.submit_form)
+        yield scrapy.Request(url=url, callback=self.submit_form, dont_filter=True)
 
-    
     def submit_form(self, response):
-        token = response.css('input[name="_csrf"]::attr(value)').extract_first()
+        token = response.css('input[name="_csrf"]::attr(value)').get()
         week_beginning = response.css("select#week option::text").get()
+        org_apache_struts_taglib_html_TOKEN = response.css("input[name='org.apache.struts.taglib.html.TOKEN']::attr(value)").get()
+
         data = {
-            '_csrf' : token,
-            'week' : week_beginning,
-            #ddmmyy
+            '_csrf': token,
+            'week': week_beginning,
+            'org.apache.struts.taglib.html.TOKEN': org_apache_struts_taglib_html_TOKEN
         }
-        yield scrapy.FormRequest.from_response(response, formdata=data, callback=self.parse_results_page, dont_filter=True)
+        yield scrapy.FormRequest.from_response(response, formdata=data, callback=self.parse_results_page,
+                                               dont_filter=True)
 
     def parse_results_page(self, response):
         application = response.xpath("//ul[@id='searchresults']/li")
@@ -37,8 +40,7 @@ class PlanningSpider(scrapy.Spider):
     def parse_details_page(self, response):
         application_item = AdurApplicationItem()
 
-        table_rows = response.css("table tr") # Setting table rows as root executioner
-
+        table_rows = response.css("table tr")  # Setting table rows as root executioner
 
         application_item['reference'] = table_rows[0].css("td ::text").get()
         application_item['alt_ref'] = table_rows[1].css("td ::text").get()
@@ -49,9 +51,11 @@ class PlanningSpider(scrapy.Spider):
         application_item['status'] = response.css(".caseDetailsStatus::text").extract_first()
         application_item['appeal_status'] = table_rows[7].css("td ::text").get()
         application_item['appeal_decision'] = table_rows[8].css("td ::text").get()
-        application_item['documents'] = "https://pa.blaby.gov.uk" + str(response.css('p.associateddocument a::attr(href)').get())
-        application_item['cases'] = "https://pa.blaby.gov.uk" + str(response.css("p.associatedcase a::attr(href)").get())
-        application_item['property'] = "https://pa.blaby.gov.uk" + str(response.css("p.associatedproperty a::attr(href)").get())
-
+        application_item['documents'] = "https://pa.blaby.gov.uk" + str(
+        response.css('p.associateddocument a::attr(href)').get())
+        application_item['cases'] = "https://pa.blaby.gov.uk" + str(
+        response.css("p.associatedcase a::attr(href)").get())
+        application_item['property'] = "https://pa.blaby.gov.uk" + str(
+        response.css("p.associatedproperty a::attr(href)").get())
 
         yield application_item
