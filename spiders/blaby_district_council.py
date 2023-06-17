@@ -3,11 +3,11 @@ from urllib.parse import urljoin
 from planning_councils.items import AdurApplicationItem
 
 class PlanningSpider(scrapy.Spider):
-    name = "bathnes_coucil"
-    allowed_domains = ["bathnes.gov.uk"]
+    name = "blaby_district_council"
+    allowed_domains = ["pa.blaby.gov.uk"]
 
     def start_requests(self):
-        url = "https://www.bathnes.gov.uk/webforms/planning/#weeklyList"
+        url = "https://pa.blaby.gov.uk/online-applications/search.do?action=weeklyList"
         yield scrapy.Request(url=url, callback=self.submit_form)
 
     
@@ -49,9 +49,9 @@ class PlanningSpider(scrapy.Spider):
         application_item['status'] = response.css(".caseDetailsStatus::text").extract_first()
         application_item['appeal_status'] = table_rows[7].css("td ::text").get()
         application_item['appeal_decision'] = table_rows[8].css("td ::text").get()
-        application_item['documents'] = "https://publicaccess.bassetlaw.gov.uk" + str(response.css('p.associateddocument a::attr(href)').get())
-        application_item['cases'] = "https://publicaccess.bassetlaw.gov.uk" + str(response.css("p.associatedcase a::attr(href)").get())
-        application_item['property'] = "https://publicaccess.bassetlaw.gov.uk" + str(response.css("p.associatedproperty a::attr(href)").get())
+        application_item['documents'] = "https://pa.blaby.gov.uk" + str(response.css('p.associateddocument a::attr(href)').get())
+        application_item['cases'] = "https://pa.blaby.gov.uk" + str(response.css("p.associatedcase a::attr(href)").get())
+        application_item['property'] = "https://pa.blaby.gov.uk" + str(response.css("p.associatedproperty a::attr(href)").get())
 
 
         yield application_item
